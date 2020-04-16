@@ -1089,36 +1089,51 @@ lr_handle_prepare_internal_mirrorlist(LrHandle *handle,
             local_path = url;
     }
 
-    gboolean ret;
+    gboolean ret = FALSE;
+    GError *tmp_err = NULL;
 
     // LRO_URLS
     if (!handle->urls_mirrors && handle->urls) {
-        ret = lr_handle_prepare_urls(handle, err);
-        if (!ret) {
-            assert(!err || *err);
+        if (!lr_handle_prepare_urls(handle, &tmp_err)) {
+            assert(tmp_err);
+            g_propagate_error(err, tmp_err);
+            g_clear_error(&tmp_err);
             g_warning("LRO_URLS processing failed");
-            return FALSE;
+        } else {
+            ret = TRUE;
         }
     }
 
     // LRO_MIRRORLISTURL
     if (!handle->mirrorlist_mirrors && (handle->mirrorlisturl || local_path)) {
-        ret = lr_handle_prepare_mirrorlist(handle, local_path, err);
-        if (!ret) {
-            assert(!err || *err);
+        if (!lr_handle_prepare_mirrorlist(handle, local_path, &tmp_err)) {
+            assert(tmp_err);
+            g_clear_error(err);
+            g_propagate_error(err, tmp_err);
+            g_clear_error(&tmp_err);
             g_warning("LRO_MIRRORLISTURL processing failed");
-            return FALSE;
+        } else {
+            ret = TRUE;
         }
     }
 
     // LRO_METALINKURL
     if (!handle->metalink_mirrors && (handle->metalinkurl || local_path)) {
-        ret = lr_handle_prepare_metalink(handle, local_path, err);
-        if (!ret) {
-            assert(!err || *err);
+        if (!lr_handle_prepare_metalink(handle, local_path, &tmp_err)) {
+            assert(tmp_err);
+            g_clear_error(err);
+            g_propagate_error(err, tmp_err);
+            g_clear_error(&tmp_err);
             g_warning("LRO_METALINKURL processing failed");
-            return FALSE;
+        } else {
+            ret = TRUE;
         }
+    }
+
+    if (!ret) {
+        return FALSE;
+    } else {
+        g_clear_error(err);
     }
 
     // Append all the mirrorlist to the single internal mirrorlist
@@ -1242,6 +1257,7 @@ lr_handle_perform(LrHandle *handle, LrResult *result, GError **err)
                                                 handle->fastestmirror,
                                                 &tmp_err);
     if (!ret) {
+        //printf("librepo re: %i\n\n", tmp_err->code);
         g_debug("Cannot prepare internal mirrorlist: %s", tmp_err->message);
         g_propagate_prefixed_error(err, tmp_err,
                                    "Cannot prepare internal mirrorlist: ");
