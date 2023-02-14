@@ -23,6 +23,8 @@
 
 #include <glib.h>
 
+//test
+
 G_BEGIN_DECLS
 
 /** \defgroup   checksum    Checksum calculation and checking
