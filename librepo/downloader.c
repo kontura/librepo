@@ -876,9 +876,9 @@ select_next_target(LrDownload *dd,
         {
             // Used relative path with empty internal mirrorlist
             // and no basepath specified!
-            g_warning("Empty mirrorlist and no basepath specified");
+            g_warning("Empty mirrorlist and no baseurl specified");
             g_set_error(err, LR_DOWNLOADER_ERROR, LRE_NOURL,
-                        "Empty mirrorlist and no basepath specified!");
+                        "Empty mirrorlist and no baseurl specified!!");
             return FALSE;
         }
 
